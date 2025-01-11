@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+            <a href="/"
+                class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <span class="fs-4">Contact Management App</span>
+            </a>
+
+            <ul class="nav nav-pills">
+                <li class="nav-item"><a href="#" class="nav-link active" aria-current="page">Home</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Pricing</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+            </ul>
+        </header>
+
+        <!-- ----------------------------------- -->
+
+        <div>
+            <form id="contactForm" onsubmit="return createContact(event)">
+
+                <input type="text" class="form-control" id="contactId" hidden>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name">
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone no.</label>
+                    <input type="number" class="form-control" id="phone">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="email">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+
+        <!-- --------------------------------------------------------- -->
+        <div id="displayContactContainer">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">email</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+
+    <script>
+        let name = document.getElementById("name");
+        let phone = document.getElementById("phone");
+        let email = document.getElementById("email");
+        let tableBody = document.getElementById("tableBody");
+        let contactForm = document.getElementById("contactForm")
+        let contactId = document.getElementById("contactId")
+
+        function getContacts() {
+            let contacts = JSON.parse(localStorage.getItem("Contacts"))
+            return contacts
+        }
+        let contactArr = getContacts()
+
+        function createContact(event) {
+            event.preventDefault();
+
+            if(isEdit){
+                //push this new object into the array with the updated values in the form
+                let updatedContact = {
+                    id : contactId.value,
+                    name: name.value,
+                    phone: phone.value,
+                    email: email.value
+                }
+
+                contactArr = contactArr.map((contact)=>{
+                    if(contact.id == updatedContact.id){
+                        return updatedContact
+                    }
+
+                    return contact
+                })
+
+                localStorage.setItem("Contacts", JSON.stringify(contactArr))
+                isEdit = false
+                contactForm.reset()
+                viewContact()
+                return 
+            }
+
+
+            let contact = {
+                id: contactArr.length + 1,
+                name: name.value,
+                phone: phone.value,
+                email: email.value,
+            }
+
+            contactArr.push(contact)
+            localStorage.setItem("Contacts", JSON.stringify(contactArr))
+            console.log(contactArr)
+            viewContact()
+            contactForm.reset()
+
+
+        }
+
+        let isEdit = false;
+
+        function updateContact(id) {
+            let record = contactArr.find(item => item.id == id)
+            if (!record) {
+                return
+            }
+
+            contactId.value = record.id
+            name.value = record.name
+            phone.value = record.phone
+            email.value = record.email
+
+            isEdit = true
+        }
+
+        function deleteContact(id) {
+            contactArr = contactArr.filter(contact => contact.id != id)
+            console.log(contactArr)
+            localStorage.setItem("Contacts", JSON.stringify(contactArr))
+            viewContact()
+        }
+
+        function viewContact() {
+            tableBody.innerHTML = ""
+            for (contact of contactArr) {
+                tableBody.innerHTML += `<tr>
+                        <th scope="row">${contact.id}</th>
+                        <td>${contact.name}</td>
+                        <td>${contact.phone}</td>
+                        <td>${contact.email}</td>
+                        <td><button type="button" class="btn btn-primary" onclick="updateContact(${contact.id})">Update</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteContact(${contact.id})">Delete</button></td>
+                    </tr>`
+            }
+        }
+
+        viewContact()
+    </script>
+</body>
+
+</html>
